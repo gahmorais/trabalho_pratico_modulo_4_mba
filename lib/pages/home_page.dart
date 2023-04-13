@@ -1,14 +1,16 @@
 import 'package:app/models/address.dart';
+import 'package:app/models/errors.dart';
 import 'package:app/services/postal_code_service.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
   @override
   State<StatefulWidget> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  TextEditingController _controller = TextEditingController();
+  final _controller = TextEditingController();
   final cepService = PostalCodeService();
   Future<Address>? cepFuture;
   @override
@@ -19,31 +21,32 @@ class _HomePageState extends State<HomePage> {
   Text titleText(String text) {
     return Text(
       text,
-      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
+      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
     );
   }
 
-  Text descriptionText(String text) {
-    return Text(style: TextStyle(fontSize: 16.0, fontStyle: FontStyle.italic), text);
+  Text descriptionText(String? text) {
+    return Text(style: const TextStyle(fontSize: 16.0, fontStyle: FontStyle.italic), text ?? "");
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Buscar CEP"),
+        title: const Text("Buscar CEP"),
       ),
       body: SafeArea(
           child: Padding(
-        padding: EdgeInsets.all(10.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
             TextField(
               controller: _controller,
-              style: TextStyle(fontSize: 18.0),
-              decoration: InputDecoration(hintText: "Digite o CEP", border: OutlineInputBorder()),
+              style: const TextStyle(fontSize: 18.0),
+              decoration:
+                  const InputDecoration(hintText: "Digite o CEP", border: OutlineInputBorder()),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () {
                 final cep = _controller.text;
@@ -52,71 +55,84 @@ class _HomePageState extends State<HomePage> {
                   cepFuture = addressResult;
                 });
               },
-              child: Text("Buscar"),
-              style: ElevatedButton.styleFrom(minimumSize: Size.fromHeight(50.0)),
+              style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50.0)),
+              child: const Text("Buscar"),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20.0,
             ),
             FutureBuilder<Address>(
                 future: cepFuture,
                 builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Text("Ocorreu um erro");
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.hasError) {
+                      final error = snapshot.error as CepExpection;
+                      return Text(
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red.shade400),
+                          error.error);
+                    }
+                    if (snapshot.hasData) {
+                      final address = snapshot.data!;
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              titleText("Endereço:"),
+                              const SizedBox(
+                                width: 10.0,
+                              ),
+                              descriptionText(address.street)
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              titleText("Bairro:"),
+                              const SizedBox(
+                                width: 10.0,
+                              ),
+                              descriptionText(address.district)
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              titleText("Cidade:"),
+                              const SizedBox(
+                                width: 10.0,
+                              ),
+                              descriptionText(address.city)
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              titleText("Estado:"),
+                              const SizedBox(
+                                width: 10.0,
+                              ),
+                              descriptionText(address.state)
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              titleText("CEP:"),
+                              const SizedBox(
+                                width: 10.0,
+                              ),
+                              descriptionText(address.postalCode)
+                            ],
+                          )
+                        ],
+                      );
+                    }
                   }
-                  if (snapshot.hasData) {
-                    final address = snapshot.data!;
-                    return Column(
-                      children: [
-                        Row(
-                          children: [
-                            titleText("Endereço:"),
-                            SizedBox(
-                              width: 10.0,
-                            ),
-                            descriptionText(address.street)
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            titleText("Bairro:"),
-                            SizedBox(
-                              width: 10.0,
-                            ),
-                            descriptionText(address.district)
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            titleText("Cidade:"),
-                            SizedBox(
-                              width: 10.0,
-                            ),
-                            descriptionText(address.city)
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            titleText("Estado:"),
-                            SizedBox(
-                              width: 10.0,
-                            ),
-                            descriptionText(address.state)
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            titleText("CEP:"),
-                            SizedBox(
-                              width: 10.0,
-                            ),
-                            descriptionText(address.postalCode)
-                          ],
-                        )
-                      ],
-                    );
+
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
                   }
-                  return Text("");
+
+                  return const Text("");
                 })
           ],
         ),

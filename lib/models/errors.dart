@@ -1,9 +1,9 @@
-class Error {
+class CepExpection {
   String error;
   String message;
-  Error({required this.error, required this.message});
+  CepExpection({required this.error, required this.message});
 
-  factory Error.fromJson(Map<String, dynamic> json) {
-    return Error(error: json['error'] as String, message: json['message'] as String);
+  factory CepExpection.fromJson(Map<String, dynamic> json) {
+    return CepExpection(error: json['error'] as String, message: json['message'] as String);
   }
 }

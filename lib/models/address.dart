@@ -2,8 +2,8 @@ class Address {
   final String postalCode;
   final String state;
   final String city;
-  final String district;
-  final String street;
+  final String? district;
+  final String? street;
 
   Address(
       {required this.postalCode,
@@ -17,7 +17,7 @@ class Address {
         postalCode: json['cep'] as String,
         state: json['estado'] as String,
         city: json['cidade'] as String,
-        district: json['bairro'] as String,
-        street: json['rua'] as String);
+        district: json['bairro'] as String?,
+        street: json['rua'] as String?);
   }
 }
